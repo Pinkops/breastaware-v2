@@ -1,0 +1,38 @@
+{
+  "name": "BreastAware — Private Breast-Health Organizer",
+  "short_name": "BreastAware",
+  "description": "Keep track of what's normal for you, record changes over time, and prepare organized notes for conversations with your healthcare professional.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f6f3ee",
+  "theme_color": "#14313a",
+  "categories": ["health", "productivity", "lifestyle"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    { "name": "Record a Change", "url": "/#/record" },
+    { "name": "My Timeline", "url": "/#/timeline" },
+    { "name": "Prepare for a Visit", "url": "/#/prepare" }
+  ]
+}

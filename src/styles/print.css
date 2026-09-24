@@ -1,0 +1,92 @@
+/* Print styles — Health Summary must be clean, professional, printer-friendly */
+
+@media print {
+  @page {
+    margin: 16mm 14mm;
+  }
+
+  body {
+    background: #fff !important;
+    color: #000;
+    font-size: 11pt;
+  }
+
+  .no-print,
+  .bottom-nav,
+  .sidebar,
+  .demo-banner,
+  .skip-link,
+  .btn,
+  .btn-row,
+  .back-link,
+  .wizard-progress,
+  .settings-nav {
+    display: none !important;
+  }
+
+  .shell {
+    display: block;
+    min-height: auto;
+  }
+
+  .shell__main {
+    max-width: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .summary-sheet {
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    border-radius: 0;
+    max-width: none;
+  }
+
+  .summary-sheet__head {
+    border-bottom: 2.5pt solid #000;
+  }
+
+  .summary-sheet__kicker {
+    color: #000;
+  }
+
+  .summary-section h2 {
+    color: #000;
+    border-bottom: 0.75pt solid #444;
+  }
+
+  .summary-change {
+    border: 0.75pt solid #999;
+    break-inside: avoid;
+  }
+
+  .summary-disclaimer {
+    background: #f4f4f4;
+    border: 0.75pt solid #999;
+    break-inside: avoid;
+  }
+
+  a {
+    color: #000;
+    text-decoration: none;
+  }
+
+  /* Show URL after external source links in printed articles if printed */
+  .article a[href^='http']::after {
+    content: ' (' attr(href) ')';
+    font-size: 9pt;
+    color: #333;
+    word-break: break-all;
+  }
+
+  h1, h2, h3 {
+    break-after: avoid;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+}
+
+.print-only { display: none; }

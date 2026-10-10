@@ -95,6 +95,7 @@ export function AppShell() {
         </div>
       )}
 
+      <div className="shell__body">
       {/* Desktop sidebar */}
       <aside className="sidebar no-print">
         <NavLink to="/home" className="sidebar__brand">
@@ -166,6 +167,7 @@ export function AppShell() {
       <main id="main" className="shell__main">
         <Outlet />
       </main>
+      </div>
 
       {/* Mobile bottom nav */}
       <nav className="bottom-nav no-print" aria-label="Primary">

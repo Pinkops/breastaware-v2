@@ -482,22 +482,39 @@
 .modal__close svg { width: 18px; height: 18px; }
 
 .modal-backdrop--centered .modal {
-  border-radius: var(--radius-lg);
-  padding: var(--sp-7) var(--sp-6);
+  position: relative;
+  width: min(100%, 36rem);
+  max-height: calc(100dvh - 2rem);
+  overflow-x: hidden;
+  border-radius: 24px;
+  padding: 2.25rem;
   text-align: center;
-  border: 1px solid rgba(31, 111, 104, 0.2);
-  box-shadow: 0 24px 80px rgba(15, 34, 40, 0.3);
+  border: 1px solid rgba(31, 111, 104, 0.18);
+  box-shadow: 0 28px 90px rgba(15, 34, 40, 0.34);
 }
 .modal-backdrop--centered .modal__head {
-  position: relative;
-  justify-content: center;
+  position: static;
+  display: block;
+  margin: 0 0 1.25rem;
   padding: 0 2.5rem;
 }
-.modal-backdrop--centered .modal__head h2 { text-align: center; }
+.modal-backdrop--centered .modal__head h2 {
+  margin: 0;
+  text-align: center;
+  font-size: clamp(1.45rem, 3vw, 1.8rem);
+  line-height: 1.2;
+}
 .modal-backdrop--centered .modal__close {
   position: absolute;
-  right: -0.5rem;
-  top: -0.75rem;
+  right: 1rem;
+  top: 1rem;
+}
+@media (max-width: 480px) {
+  .modal-backdrop--centered .modal {
+    padding: 2rem 1.25rem 1.5rem;
+    border-radius: 20px;
+  }
+  .modal-backdrop--centered .modal__head { padding: 0 2rem; }
 }
 .demo-warning {
   display: flex;

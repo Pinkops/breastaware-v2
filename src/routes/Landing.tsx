@@ -1,11 +1,20 @@
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../lib/app-context';
+import { Modal } from '../components/Modal';
 import { BrandMark, IconArrowRight, IconLock, IconTimeline, IconPrep, IconPlus, IconEye } from '../components/icons';
 import { ARTICLES } from '../content/education';
 
 export function LandingPage() {
   const { mode, enterDemo, status } = useApp();
   const navigate = useNavigate();
+  const [demoWarningOpen, setDemoWarningOpen] = useState(false);
+
+  function continueToDemo() {
+    setDemoWarningOpen(false);
+    enterDemo();
+    navigate('/home');
+  }
 
   const primaryCta =
     mode === 'demo'
@@ -63,14 +72,7 @@ export function LandingPage() {
             <button
               type="button"
               className="btn btn--secondary btn--lg"
-              onClick={() => {
-                const continueToDemo = window.confirm(
-                  'This is an interactive demo with sample data. Any edits are temporary and are not saved to your private vault. Do not enter real health information. Continue?',
-                );
-                if (!continueToDemo) return;
-                enterDemo();
-                navigate('/home');
-              }}
+              onClick={() => setDemoWarningOpen(true)}
             >
               Explore with demo data
             </button>
@@ -157,6 +159,33 @@ export function LandingPage() {
           Australia, and official screening programs. <Link to="/education">Browse education</Link>
         </div>
       </footer>
+
+      <Modal
+        open={demoWarningOpen}
+        onClose={() => setDemoWarningOpen(false)}
+        title="Before you explore the demo"
+        titleId="demo-warning-title"
+        centered
+      >
+        <div className="demo-warning">
+          <div className="demo-warning__icon" aria-hidden="true">
+            <IconLock />
+          </div>
+          <p className="demo-warning__lead">Explore every feature safely with sample information.</p>
+          <div className="demo-warning__notice">
+            <strong>This is a temporary interactive demo.</strong>
+            <span>Your edits are not saved to a private vault and may be cleared. Please do not enter real health information.</span>
+          </div>
+          <div className="demo-warning__actions">
+            <button type="button" className="btn btn--primary btn--lg" onClick={continueToDemo}>
+              Continue to demo <IconArrowRight />
+            </button>
+            <button type="button" className="btn btn--ghost" onClick={() => setDemoWarningOpen(false)}>
+              Go back
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

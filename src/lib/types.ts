@@ -21,6 +21,7 @@ export type BodyRegion =
   | 'central'
   | 'nipple-areola'
   | 'axilla'
+  | 'collarbone'
   | 'chest-wall'
   | 'other';
 
@@ -31,6 +32,10 @@ export interface ObservationLocation {
   /** Percentage coordinates within the body-map diagram (0–100). */
   xPct: number;
   yPct: number;
+  /** Optional patient-estimated clinical localization details. */
+  clockPosition?: number | null;
+  distanceFromNippleCm?: number | null;
+  distribution?: 'one-area' | 'multiple-areas' | 'diffuse' | 'unsure' | null;
   note?: string;
 }
 
@@ -223,6 +228,7 @@ export const REGION_OPTIONS: Array<{ id: BodyRegion; label: string }> = [
   { id: 'central', label: 'Central / retroareolar area' },
   { id: 'nipple-areola', label: 'Nipple or areola' },
   { id: 'axilla', label: 'Axilla (armpit) or axillary tail' },
+  { id: 'collarbone', label: 'Above or below the collarbone' },
   { id: 'chest-wall', label: 'Chest wall or breastbone area' },
   { id: 'other', label: 'Another nearby area' },
 ];

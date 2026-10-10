@@ -22,6 +22,7 @@ const REGION_POS: Record<BodyRegion, { x: number; y: number }> = {
   central: { x: 68, y: 37 },
   'nipple-areola': { x: 68, y: 37 },
   axilla: { x: 89, y: 25 },
+  collarbone: { x: 72, y: 18 },
   'chest-wall': { x: 50, y: 37 },
   other: { x: 68, y: 37 },
 };
@@ -33,8 +34,9 @@ export function regionForPosition(xPct: number, yPct: number): BodyRegion {
   const dy = yPct - 37;
   const distance = Math.hypot(dx, dy);
 
+  if (yPct < 21 && (xPct < 44 || xPct > 56)) return 'collarbone';
   if (xPct >= 45 && xPct <= 55) return 'chest-wall';
-  if ((xPct < 16 || xPct > 84) && yPct >= 16 && yPct <= 42) return 'axilla';
+  if ((xPct < 16 || xPct > 84) && yPct >= 21 && yPct <= 42) return 'axilla';
   if (distance <= 3.5) return 'nipple-areola';
   if (distance <= 8) return 'central';
 
@@ -92,7 +94,14 @@ export function BodyMap({
     const xPct = clamp(((e.clientX - rect.left) / rect.width) * 100, 4, 96);
     const yPct = clamp(((e.clientY - rect.top) / rect.height) * 100, 6, 92);
     const region = regionForPosition(xPct, yPct);
-    emit({ xPct: Math.round(xPct), yPct: Math.round(yPct), region, side: inferSide(xPct) });
+    const breastRegion = ['upper-outer', 'upper-inner', 'lower-outer', 'lower-inner', 'central', 'nipple-areola'].includes(region);
+    emit({
+      xPct: Math.round(xPct),
+      yPct: Math.round(yPct),
+      region,
+      side: inferSide(xPct),
+      ...(breastRegion ? {} : { clockPosition: null, distanceFromNippleCm: null }),
+    });
     setAnnounced(`Marker placed, ${REGION_OPTIONS.find((r) => r.id === region)?.label}`);
   };
 
@@ -141,6 +150,9 @@ export function BodyMap({
   };
 
   const showMarker = value !== null;
+  const supportsBreastCoordinates = Boolean(
+    loc.region && ['upper-outer', 'upper-inner', 'lower-outer', 'lower-inner', 'central', 'nipple-areola'].includes(loc.region),
+  );
 
   return (
     <div className="bodymap">
@@ -279,7 +291,13 @@ export function BodyMap({
                   disabled={readOnly}
                   onChange={() => {
                     const pos = defaultPosFor(loc.side, r.id);
-                    emit({ region: r.id, xPct: pos.x, yPct: pos.y });
+                    const breastRegion = ['upper-outer', 'upper-inner', 'lower-outer', 'lower-inner', 'central', 'nipple-areola'].includes(r.id);
+                    emit({
+                      region: r.id,
+                      xPct: pos.x,
+                      yPct: pos.y,
+                      ...(breastRegion ? {} : { clockPosition: null, distanceFromNippleCm: null }),
+                    });
                     setAnnounced(`Area set to ${r.label}`);
                   }}
                 />
@@ -291,6 +309,72 @@ export function BodyMap({
           </div>
         </fieldset>
       </div>
+
+      {!readOnly && (
+        <div className="bodymap__clinical-details">
+          <div className="bodymap__detail-head">
+            <strong>Optional location details</strong>
+            <span>Only add estimates you feel confident about.</span>
+          </div>
+
+          <div className="bodymap__detail-grid">
+            <label className="field">
+              <span className="label">Pattern</span>
+              <select
+                className="select"
+                value={loc.distribution ?? ''}
+                onChange={(event) => emit({ distribution: (event.target.value || null) as ObservationLocation['distribution'] })}
+              >
+                <option value="">Not specified</option>
+                <option value="one-area">One specific area</option>
+                <option value="multiple-areas">Several separate areas</option>
+                <option value="diffuse">Spread across a wider area</option>
+                <option value="unsure">Not sure</option>
+              </select>
+            </label>
+
+            <label className="field">
+              <span className="label">Clock-face position</span>
+              <select
+                className="select"
+                value={loc.clockPosition ?? ''}
+                disabled={!supportsBreastCoordinates}
+                onChange={(event) => emit({ clockPosition: event.target.value ? Number(event.target.value) : null })}
+              >
+                <option value="">Not specified</option>
+                {Array.from({ length: 12 }, (_, index) => index + 1).map((hour) => (
+                  <option key={hour} value={hour}>{hour} o&rsquo;clock</option>
+                ))}
+              </select>
+              {!supportsBreastCoordinates && <span className="hint">Available after choosing an area on the breast.</span>}
+            </label>
+
+            <label className="field">
+              <span className="label">Approx. distance from nipple</span>
+              <span className="input-with-unit">
+                <input
+                  className="input"
+                  type="number"
+                  inputMode="decimal"
+                  min="0"
+                  max="30"
+                  step="0.5"
+                  value={loc.distanceFromNippleCm ?? ''}
+                  disabled={!supportsBreastCoordinates}
+                  onChange={(event) => emit({
+                    distanceFromNippleCm: event.target.value === '' ? null : clamp(Number(event.target.value), 0, 30),
+                  })}
+                  aria-label="Approximate distance from nipple in centimetres"
+                />
+                <span>cm</span>
+              </span>
+            </label>
+          </div>
+          <p className="hint bodymap__clock-hint">
+            Clock-face reference: 12 is toward the head and 6 is toward the feet. Distance is an estimate from the centre of the nipple.
+          </p>
+        </div>
+      )}
 
       <p className="bodymap__caption">
         {showMarker

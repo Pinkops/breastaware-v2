@@ -13,6 +13,7 @@ describe('body-map anatomical regions', () => {
     expect(regionForPosition(68, 37)).toBe('nipple-areola');
     expect(regionForPosition(73, 40)).toBe('central');
     expect(regionForPosition(90, 25)).toBe('axilla');
+    expect(regionForPosition(72, 18)).toBe('collarbone');
     expect(regionForPosition(50, 37)).toBe('chest-wall');
   });
 });

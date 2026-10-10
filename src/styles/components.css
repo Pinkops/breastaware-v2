@@ -806,6 +806,25 @@
 @media (min-width: 560px) {
   .bodymap__regions { grid-template-columns: 1fr 1fr; }
 }
+.bodymap__clinical-details {
+  margin-top: var(--sp-5);
+  padding: var(--sp-5);
+  border-radius: 16px;
+  border: 1px solid rgba(31, 111, 104, 0.18);
+  background: rgba(255, 255, 255, 0.72);
+}
+.bodymap__detail-head { display: grid; gap: 2px; margin-bottom: var(--sp-4); }
+.bodymap__detail-head strong { font-size: var(--fs-md); }
+.bodymap__detail-head span { color: var(--muted); font-size: var(--fs-sm); }
+.bodymap__detail-grid { display: grid; gap: var(--sp-3); }
+.bodymap__detail-grid .field { margin: 0; }
+.input-with-unit { display: flex; align-items: center; gap: var(--sp-2); }
+.input-with-unit .input { min-width: 0; }
+.input-with-unit > span { color: var(--muted); font-weight: 700; }
+.bodymap__clock-hint { margin: var(--sp-3) 0 0; }
+@media (min-width: 680px) {
+  .bodymap__detail-grid { grid-template-columns: repeat(3, 1fr); align-items: start; }
+}
 @media (prefers-reduced-motion: reduce) {
   .bodymap__pulse { animation: none; }
 }

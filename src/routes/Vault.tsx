@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useApp } from '../lib/app-context';
-import { MAX_FILE_BYTES, MAX_VAULT_BYTES, getDocBytes, putDocBytes, deleteDocBytes, type StoredDocBytes } from '../lib/storage';
+import { MAX_FILE_BYTES, MAX_VAULT_BYTES, getDocBytes, putDocBytes, deleteDocBytes, hasDocumentCapacity, type StoredDocBytes } from '../lib/storage';
 import { sealBytes } from '../lib/crypto';
 import { downloadDocument } from '../lib/export';
 import { Banner, Badge, Button, EmptyState, Field, PageHead, TextInput } from '../components/primitives';
@@ -41,6 +41,11 @@ export function VaultPage() {
       setError(`Files must be ${fileSize(MAX_FILE_BYTES)} or smaller.`);
       return;
     }
+    const existingBytes = docs.reduce((sum, document) => sum + document.size, 0);
+    if (!hasDocumentCapacity(existingBytes, pending.size)) {
+      setError(`Your document vault is limited to ${fileSize(MAX_VAULT_BYTES)}. Delete a document before adding this file.`);
+      return;
+    }
     if (mode === 'demo') {
       setError('File upload is available in your own private vault, not in demo mode.');
       return;
@@ -51,12 +56,14 @@ export function VaultPage() {
     }
 
     setBusy(true);
+    const id = uid();
+    let bytesStored = false;
     try {
       const buf = await pending.arrayBuffer();
       const sealed = await sealBytes(buf, session);
-      const id = uid();
       const rec: StoredDocBytes = { id, owner: 'vault', ...sealed };
       await putDocBytes(rec);
+      bytesStored = true;
       const meta: VaultDocumentMeta = {
         id,
         name: pending.name.slice(0, 120),
@@ -71,15 +78,12 @@ export function VaultPage() {
       if (fileRef.current) fileRef.current.value = '';
     } catch (err) {
       setError(friendlyError(err, 'We could not store that document. Please try again.'));
-      await deleteDocBytesSafe();
+      if (bytesStored) await deleteDocBytes(id).catch(() => undefined);
     } finally {
       setBusy(false);
     }
   }
 
-  async function deleteDocBytesSafe() {
-    /* cleanup helper on failure — id is unknown if put failed early */
-  }
 
   async function download(meta: VaultDocumentMeta) {
     setError('');

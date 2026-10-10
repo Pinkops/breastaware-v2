@@ -153,8 +153,7 @@ export function AppShell() {
                 exitDemo(true);
                 navigate('/');
               } else {
-                lock();
-                navigate('/login');
+                void lock().then(() => navigate('/login'));
               }
             }}
           >
@@ -219,8 +218,7 @@ export function AppShell() {
                 exitDemo(true);
                 navigate('/');
               } else {
-                lock();
-                navigate('/login');
+                void lock().then(() => navigate('/login'));
               }
             }}
           >

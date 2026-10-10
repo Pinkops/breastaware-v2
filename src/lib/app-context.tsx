@@ -39,7 +39,7 @@ interface AppContextValue {
   busy: boolean;
   createProfile(displayName: string, passphrase: string): Promise<void>;
   unlock(passphrase: string): Promise<boolean>;
-  lock(): void;
+  lock(): Promise<void>;
   update(mutator: (draft: AppData) => AppData): void;
   enterDemo(): void;
   exitDemo(clearData?: boolean): void;
@@ -49,8 +49,6 @@ interface AppContextValue {
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
-
-const SAVE_DEBOUNCE_MS = 350;
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [mode, setMode] = useState<'real' | 'demo'>(() => (isDemoMode() ? 'demo' : 'real'));
@@ -63,7 +61,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const sessionRef = useRef<SessionKey | null>(null);
   const dataRef = useRef<AppData | null>(null);
   const modeRef = useRef(mode);
-  const saveTimer = useRef<number | null>(null);
+  // Serialize encrypted writes so a slower earlier save can never overwrite a newer one.
+  // Locking awaits this queue, preventing edits made immediately before lock from being lost.
+  const saveQueue = useRef<Promise<void>>(Promise.resolve());
   const lockTimer = useRef<number | null>(null);
   const lastActivity = useRef(Date.now());
 
@@ -95,18 +95,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  /* ---------- debounced persistence ---------- */
+  /* ---------- ordered persistence ---------- */
   const persist = useCallback((next: AppData) => {
-    if (saveTimer.current) window.clearTimeout(saveTimer.current);
-    saveTimer.current = window.setTimeout(() => {
-      if (modeRef.current === 'demo') {
-        writeDemo(next);
-      } else if (sessionRef.current) {
-        saveVault(next, sessionRef.current).catch((err) => {
-          setError(friendlyError(err, 'We could not save your changes on this device.'));
-        });
-      }
-    }, SAVE_DEBOUNCE_MS);
+    if (modeRef.current === 'demo') {
+      writeDemo(next);
+      return;
+    }
+    const activeSession = sessionRef.current;
+    if (!activeSession) return;
+    saveQueue.current = saveQueue.current
+      .catch(() => undefined)
+      .then(() => saveVault(next, activeSession))
+      .catch((err) => {
+        setError(friendlyError(err, 'We could not save your changes on this device.'));
+        throw err;
+      });
   }, []);
 
   const update = useCallback(
@@ -122,7 +125,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   /* ---------- auto-lock ---------- */
-  const lock = useCallback(() => {
+  const lock = useCallback(async () => {
+    // Do not discard the key until every accepted edit has reached storage.
+    try {
+      await saveQueue.current;
+    } catch {
+      // The error is already surfaced in the UI; locking must still protect the session.
+    }
     sessionRef.current = null;
     setSession(null);
     setData(null);
@@ -257,7 +266,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const deleteEverything = useCallback(async () => {
     setBusy(true);
     try {
-      if (saveTimer.current) window.clearTimeout(saveTimer.current);
+      try {
+        await saveQueue.current;
+      } catch {
+        // Deletion is explicit and must proceed even if the last save failed.
+      }
       await wipeEverything();
       sessionRef.current = null;
       setSession(null);

@@ -11,6 +11,10 @@ export const DOC_STORE = 'files';
 export const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB per file
 export const MAX_VAULT_BYTES = 25 * 1024 * 1024; // 25 MB total
 
+export function hasDocumentCapacity(existingBytes: number, incomingBytes: number): boolean {
+  return existingBytes >= 0 && incomingBytes >= 0 && incomingBytes <= MAX_FILE_BYTES && existingBytes + incomingBytes <= MAX_VAULT_BYTES;
+}
+
 export function isDemoMode(): boolean {
   try {
     return sessionStorage.getItem(DEMO_SESSION_FLAG) === 'demo';

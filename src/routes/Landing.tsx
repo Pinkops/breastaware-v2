@@ -64,6 +64,10 @@ export function LandingPage() {
               type="button"
               className="btn btn--secondary btn--lg"
               onClick={() => {
+                const continueToDemo = window.confirm(
+                  'This is an interactive demo with sample data. Any edits are temporary and are not saved to your private vault. Do not enter real health information. Continue?',
+                );
+                if (!continueToDemo) return;
                 enterDemo();
                 navigate('/home');
               }}

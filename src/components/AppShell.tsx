@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useApp } from '../lib/app-context';
+import { hasProfile } from '../lib/storage';
 import { Modal } from './Modal';
 import {
   BrandMark,
@@ -69,8 +70,21 @@ export function AppShell() {
       {mode === 'demo' && (
         <div className="demo-banner" role="status">
           <span aria-hidden="true">◆</span>
-          <span>Demo data — sample records for preview. Not your health information.</span>
+          <span>
+            <strong>Interactive demo:</strong> edits are temporary and are not saved to your private vault. Do not enter real health information.
+          </span>
           <span className="btn-row" style={{ gap: '0.5rem' }}>
+            <button
+              type="button"
+              className="btn btn--sm btn--primary"
+              onClick={() => {
+                const profileExists = hasProfile();
+                exitDemo(true);
+                navigate(profileExists ? '/login' : '/signup');
+              }}
+            >
+              {hasProfile() ? 'Use my private profile' : 'Create my private profile'}
+            </button>
             <button
               type="button"
               className="btn btn--sm btn--secondary"
@@ -79,7 +93,7 @@ export function AppShell() {
                 navigate('/home');
               }}
             >
-              Reset demo data
+              Reset demo
             </button>
             <button
               type="button"
@@ -89,7 +103,7 @@ export function AppShell() {
                 navigate('/');
               }}
             >
-              Exit demo
+              Exit
             </button>
           </span>
         </div>

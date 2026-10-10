@@ -130,9 +130,11 @@ export interface VisitSummary {
     side: Side;
     locationText: string;
     notes: string;
+    painNote: string;
     recurrence: Recurrence | null;
     discussedStatus: DiscussedStatus;
   }>;
+  baselineSnapshot: Array<{ label: string; value: string }>;
   timelineNote: string;
   questions: Array<{ id: string; text: string; priority: Question['priority'] }>;
   relevantHistory: string;
@@ -140,6 +142,7 @@ export interface VisitSummary {
   screeningFromRecords: Array<{ date: string; type: string; facility: string }>;
   screeningNotes: string;
   appointmentNote: string;
+  supportingDocuments: Array<{ name: string; note: string; addedAt: string }>;
   additionalNotes: string;
   sourcePrepId: string;
 }

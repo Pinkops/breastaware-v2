@@ -43,8 +43,27 @@
     max-width: none;
   }
 
+  .summary-demo-mark {
+    margin: 0 0 8mm;
+    border: 1pt solid #7a5a18;
+    border-radius: 0;
+  }
+
   .summary-sheet__head {
-    border-bottom: 2.5pt solid #000;
+    border-bottom: 2.5pt solid #16333c;
+  }
+
+  .summary-sheet__intro {
+    color: #333;
+  }
+
+  .summary-facts > div,
+  .summary-documents li {
+    break-inside: avoid;
+  }
+
+  .summary-note-lines {
+    min-height: 42mm;
   }
 
   .summary-sheet__kicker {

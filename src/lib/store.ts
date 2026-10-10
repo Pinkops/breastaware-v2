@@ -61,7 +61,7 @@ export function seedDemoData(): AppData {
       dateFirstNoticed: day(9),
       category: 'pain',
       side: 'right',
-      location: { side: 'right', region: 'upper-outer', xPct: 66, yPct: 34, note: '' },
+      location: { side: 'right', region: 'upper-outer', xPct: 24, yPct: 29, note: '' },
       locationNote: '',
       notes: 'Tender spot that came on a few days before my period. Felt similar to pre-period tenderness but a bit more localised.',
       recurrence: 'yes',

@@ -27,6 +27,7 @@ export function buildVisitSummary(data: AppData, prep: VisitPreparation): VisitS
       side: o.side,
       locationText: locationText(o),
       notes: text(o.notes) === NOT_PROVIDED ? '' : o.notes.trim(),
+      painNote: o.painNote.trim(),
       recurrence: o.recurrence,
       discussedStatus: o.discussedStatus,
     }));
@@ -45,6 +46,20 @@ export function buildVisitSummary(data: AppData, prep: VisitPreparation): VisitS
     .sort((a, b) => (a.date < b.date ? 1 : -1))
     .map((s) => ({ date: s.date, type: s.type, facility: s.facility }));
 
+  const baseline = data.baseline;
+  const baselineSnapshot = baseline
+    ? [
+        { label: 'Usual look', value: baseline.usualLook },
+        { label: 'Usual feel', value: baseline.usualFeel },
+        { label: 'Usual size / shape', value: baseline.sizeShape },
+        { label: 'Usual texture', value: baseline.texture },
+        { label: 'Nipples', value: baseline.nipples },
+        { label: 'Cycle-related changes', value: baseline.cycleChanges },
+        { label: 'Long-standing asymmetry', value: baseline.asymmetry },
+        { label: 'Other baseline notes', value: baseline.otherNotes },
+      ].filter((item) => item.value.trim().length > 0)
+    : [];
+
   const timelineNote =
     data.observations.length > 0
       ? `${data.observations.length} observation${data.observations.length === 1 ? '' : 's'} recorded in total; ${changes.length} selected for this visit.`
@@ -56,6 +71,7 @@ export function buildVisitSummary(data: AppData, prep: VisitPreparation): VisitS
     createdAt: nowISO(),
     reasonForVisit: text(prep.reason),
     changesToDiscuss: changes,
+    baselineSnapshot,
     timelineNote,
     questions,
     relevantHistory: text(prep.historyNotes),
@@ -65,8 +81,13 @@ export function buildVisitSummary(data: AppData, prep: VisitPreparation): VisitS
     appointmentNote: appointment
       ? `${appointment.title} — ${appointment.datetime.replace('T', ' at ')}${
           appointment.provider ? ` · ${appointment.provider}` : ''
-        }`
+        }${appointment.location ? ` · ${appointment.location}` : ''}`
       : NOT_PROVIDED,
+    supportingDocuments: data.documents.map((document) => ({
+      name: document.name,
+      note: document.note,
+      addedAt: document.addedAt,
+    })),
     additionalNotes: text(prep.rememberNotes),
     sourcePrepId: prep.id,
   };
@@ -88,11 +109,16 @@ export function summaryToText(s: VisitSummary): string {
     lines.push('CHANGES I WANT TO DISCUSS');
     for (const c of s.changesToDiscuss) {
       lines.push(`• ${formatDay(c.date)} — ${categoryLabel(c.category)}, ${c.locationText}`);
-      if (c.notes) lines.push(`  ${c.notes}`);
+      if (c.notes) lines.push(`  Notes: ${c.notes}`);
+      if (c.painNote) lines.push(`  Pain / tenderness: ${c.painNote}`);
       if (c.recurrence) lines.push(`  Noticed again: ${c.recurrence.replace('-', ' ')}`);
       lines.push(`  Discussion: ${c.discussedStatus === 'discussed' ? 'Discussed with a healthcare professional' : 'Not discussed yet'}`);
     }
   }
+  lines.push('');
+  lines.push('MY USUAL BASELINE (USER-ENTERED)');
+  if (!s.baselineSnapshot?.length) lines.push(NOT_PROVIDED);
+  else s.baselineSnapshot.forEach((item) => lines.push(`• ${item.label}: ${item.value}`));
   lines.push('');
   lines.push(`TIMELINE\n${s.timelineNote}`);
   lines.push('');
@@ -114,6 +140,10 @@ export function summaryToText(s: VisitSummary): string {
   lines.push(`SCREENING NOTES\n${s.screeningNotes}`);
   lines.push('');
   lines.push(`APPOINTMENT\n${s.appointmentNote}`);
+  lines.push('');
+  lines.push('SUPPORTING DOCUMENTS AVAILABLE');
+  if (!s.supportingDocuments?.length) lines.push(NOT_PROVIDED);
+  else s.supportingDocuments.forEach((document) => lines.push(`• ${document.name}${document.note ? ` — ${document.note}` : ''}`));
   lines.push('');
   lines.push(`WHAT I WANT TO REMEMBER\n${s.additionalNotes}`);
   lines.push('');

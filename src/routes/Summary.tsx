@@ -93,7 +93,7 @@ function TextOrNone({ value }: { value: string }) {
 
 export function SummaryViewPage() {
   const { id } = useParams();
-  const { data, update } = useApp();
+  const { data, update, mode } = useApp();
   const navigate = useNavigate();
   if (!data) return null;
 
@@ -155,16 +155,23 @@ export function SummaryViewPage() {
       </div>
 
       <article className="summary-sheet" aria-label="Breast health visit summary">
+        {mode === 'demo' && <div className="summary-demo-mark">Sample demo — not a real consultation record</div>}
         <header className="summary-sheet__head">
-          <div className="summary-sheet__kicker">Breast Health Visit Summary</div>
+          <div className="summary-sheet__kicker">BreastAware · Consultation Brief</div>
+          <h1>Breast Health Visit Summary</h1>
+          <p className="summary-sheet__intro">User-reported information organized for discussion with a healthcare professional.</p>
           <div className="summary-sheet__meta">
             <div>
               <strong>Prepared by</strong>
               {summary.preparedBy}
             </div>
             <div>
-              <strong>Date</strong>
+              <strong>Prepared on</strong>
               {formatDay(summary.createdAt.slice(0, 10))}
+            </div>
+            <div>
+              <strong>Reference</strong>
+              {summary.id.slice(0, 8).toUpperCase()}
             </div>
           </div>
         </header>
@@ -181,7 +188,8 @@ export function SummaryViewPage() {
               <div className="summary-change" key={c.id}>
                 <div className="summary-change__head">{formatDay(c.date)} — {categoryLabel(c.category)}</div>
                 <div className="summary-change__loc">{c.locationText}</div>
-                {c.notes && <div className="summary-change__notes">{c.notes}</div>}
+                {c.notes && <div className="summary-change__notes"><strong>Notes:</strong> {c.notes}</div>}
+                {c.painNote && <div className="summary-change__notes"><strong>Pain / tenderness:</strong> {c.painNote}</div>}
                 <div className="small muted" style={{ marginTop: '0.35rem' }}>
                   Noticed again: {c.recurrence ? c.recurrence.replace('-', ' ') : 'not answered'} · Discussion:{' '}
                   {c.discussedStatus === 'discussed' ? 'discussed with a healthcare professional' : 'not discussed yet'}
@@ -191,7 +199,22 @@ export function SummaryViewPage() {
           )}
         </Section>
 
-        <Section title="Timeline">
+        <Section title="My usual baseline (user-entered)">
+          {!summary.baselineSnapshot?.length ? (
+            <NotProvided />
+          ) : (
+            <dl className="summary-facts">
+              {summary.baselineSnapshot.map((item) => (
+                <div key={item.label}>
+                  <dt>{item.label}</dt>
+                  <dd>{item.value}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+        </Section>
+
+        <Section title="Record overview">
           <p>{summary.timelineNote}</p>
         </Section>
 
@@ -243,8 +266,27 @@ export function SummaryViewPage() {
           <TextOrNone value={summary.appointmentNote} />
         </Section>
 
+        <Section title="Supporting documents available">
+          {!summary.supportingDocuments?.length ? (
+            <NotProvided />
+          ) : (
+            <ul className="summary-documents">
+              {summary.supportingDocuments.map((document, index) => (
+                <li key={`${document.name}-${index}`}>
+                  <strong>{document.name}</strong>
+                  {document.note ? ` — ${document.note}` : ''}
+                </li>
+              ))}
+            </ul>
+          )}
+        </Section>
+
         <Section title="What I want to remember">
           <TextOrNone value={summary.additionalNotes} />
+        </Section>
+
+        <Section title="Notes during consultation">
+          <div className="summary-note-lines" aria-label="Blank lines for handwritten consultation notes" />
         </Section>
 
         <p className="summary-disclaimer">

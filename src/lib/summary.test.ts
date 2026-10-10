@@ -14,7 +14,7 @@ function fixture(): { data: AppData; prep: VisitPreparation } {
     locationNote: '',
     notes: 'Tender before period.',
     recurrence: 'yes',
-    painNote: '',
+    painNote: 'Tender to touch.',
     createdAt: '2026-09-14T10:00:00.000Z',
     updatedAt: '2026-09-14T10:00:00.000Z',
     discussedStatus: 'not-discussed',
@@ -33,6 +33,12 @@ function fixture(): { data: AppData; prep: VisitPreparation } {
   const q2: Question = { ...q1, id: 'q-2', text: 'Excluded question', includeInSummary: false };
   data.observations = [obs];
   data.questions = [q1, q2];
+  data.baseline = {
+    id: 'baseline-1', usualLook: 'No usual skin changes.', usualFeel: 'Usually soft.', sizeShape: '', texture: '',
+    nipples: '', cycleChanges: 'Tender before period.', asymmetry: '', otherNotes: '',
+    createdAt: '2026-09-01T10:00:00.000Z', updatedAt: '2026-09-01T10:00:00.000Z', lastReviewedAt: null,
+  };
+  data.documents = [{ id: 'doc-1', name: 'mammogram-report.pdf', type: 'application/pdf', size: 100, addedAt: '2026-09-10T10:00:00.000Z', note: 'Prior report' }];
   const prep: VisitPreparation = {
     id: 'prep-1',
     reason: 'Follow-up about tenderness',
@@ -69,6 +75,9 @@ describe('buildVisitSummary (§42 — never invents)', () => {
     expect(s.changesToDiscuss).toHaveLength(1);
     expect(s.changesToDiscuss[0].id).toBe('obs-1');
     expect(s.questions.map((q) => q.id)).toEqual(['q-1']); // excluded + missing filtered out
+    expect(s.changesToDiscuss[0].painNote).toBe('Tender to touch.');
+    expect(s.baselineSnapshot).toContainEqual({ label: 'Usual feel', value: 'Usually soft.' });
+    expect(s.supportingDocuments).toContainEqual(expect.objectContaining({ name: 'mammogram-report.pdf' }));
   });
 
   it('carries no diagnosis-like fields', () => {

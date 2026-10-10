@@ -14,6 +14,7 @@ export function Modal({
   title,
   titleId,
   wide,
+  centered,
   children,
 }: {
   open: boolean;
@@ -21,6 +22,7 @@ export function Modal({
   title: string;
   titleId: string;
   wide?: boolean;
+  centered?: boolean;
   children: ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -74,7 +76,7 @@ export function Modal({
 
   return createPortal(
     <div
-      className="modal-backdrop"
+      className={`modal-backdrop${centered ? ' modal-backdrop--centered' : ''}`}
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}

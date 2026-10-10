@@ -18,8 +18,8 @@ export default defineConfig({
     sourcemap: false,
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
+        manualChunks(id) {
+          return id.includes('node_modules') ? 'vendor' : undefined;
         },
       },
     },

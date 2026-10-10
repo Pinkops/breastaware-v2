@@ -39,19 +39,35 @@ export function locationText(obs: Observation): string {
     const region = obs.location.region
       ? (REGION_TEXT[obs.location.region] ?? 'Other area')
       : 'Approximate marker placed';
-    return `${sideLabel(obs.location.side)} — ${region}`;
+    const details = [
+      obs.location.clockPosition ? `${obs.location.clockPosition} o'clock` : '',
+      typeof obs.location.distanceFromNippleCm === 'number' ? `about ${obs.location.distanceFromNippleCm} cm from nipple` : '',
+      obs.location.distribution ? DISTRIBUTION_TEXT[obs.location.distribution] : '',
+    ].filter(Boolean);
+    return `${sideLabel(obs.location.side)} — ${region}${details.length ? ` · ${details.join(' · ')}` : ''}`;
   }
   if (obs.locationNote.trim()) return `${sideLabel(obs.side)} — ${obs.locationNote.trim()}`;
   return sideLabel(obs.side);
 }
+
+const DISTRIBUTION_TEXT: Record<string, string> = {
+  'one-area': 'one specific area',
+  'multiple-areas': 'several separate areas',
+  diffuse: 'wider / diffuse area',
+  unsure: 'pattern unsure',
+};
 
 const REGION_TEXT: Record<string, string> = {
   'upper-outer': 'upper outer area',
   'upper-inner': 'upper inner area',
   'lower-outer': 'lower outer area',
   'lower-inner': 'lower inner area',
-  central: 'central area (behind the nipple)',
-  other: 'other area',
+  central: 'central / retroareolar area',
+  'nipple-areola': 'nipple or areola',
+  axilla: 'axilla (armpit) or axillary tail',
+  collarbone: 'above or below the collarbone',
+  'chest-wall': 'chest wall or breastbone area',
+  other: 'another nearby area',
 };
 
 export function buildTimeline(data: AppData): TimelineEvent[] {

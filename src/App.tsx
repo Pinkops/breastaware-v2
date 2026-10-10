@@ -1,5 +1,5 @@
-import { HashRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
-import { AppProvider } from './lib/app-context';
+import { HashRouter, Link, Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { AppProvider, useApp } from './lib/app-context';
 import { AppShell } from './components/AppShell';
 import { RequireSignedOut, RequireVault } from './components/guards';
 import { LandingPage } from './routes/Landing';
@@ -143,19 +143,22 @@ function RequireSignedOutGate({ children }: { children: React.ReactNode }) {
 
 /** Education readable without unlocking — static, source-backed content only. */
 function PublicShell({ children }: { children: React.ReactNode }) {
+  const { status } = useApp();
+  const homePath = status === 'ready' ? '/home' : '/';
+
   return (
     <div className="marketing" style={{ minHeight: '100dvh' }}>
       <header className="marketing__bar">
-        <a href="#/" className="brand">
+        <Link to={homePath} className="brand" aria-label="BreastAware home">
           <span className="brand__mark" aria-hidden="true" />
           <span>
             <span className="brand__name">BreastAware</span>
             <span className="brand__tag">Education</span>
           </span>
-        </a>
-        <a href="#/" className="btn btn--secondary btn--sm">
-          Home
-        </a>
+        </Link>
+        <Link to={homePath} className="btn btn--secondary btn--sm">
+          {status === 'ready' ? 'Back to app home' : 'Home'}
+        </Link>
       </header>
       <main id="main" style={{ maxWidth: '52rem', margin: '0 auto', padding: '1rem 1rem 4rem' }}>
         {children}

@@ -50,8 +50,11 @@ const REGION_TEXT: Record<string, string> = {
   'upper-inner': 'upper inner area',
   'lower-outer': 'lower outer area',
   'lower-inner': 'lower inner area',
-  central: 'central area (behind the nipple)',
-  other: 'other area',
+  central: 'central / retroareolar area',
+  'nipple-areola': 'nipple or areola',
+  axilla: 'axilla (armpit) or axillary tail',
+  'chest-wall': 'chest wall or breastbone area',
+  other: 'another nearby area',
 };
 
 export function buildTimeline(data: AppData): TimelineEvent[] {

@@ -3,6 +3,7 @@ import { useApp } from '../lib/app-context';
 import {
   OBSERVATION_CATEGORIES,
   SIDE_OPTIONS,
+  REGION_OPTIONS,
   type Observation,
   type ObservationDraft,
   type ObservationLocation,
@@ -246,7 +247,12 @@ export function RecordPage() {
                 onChange={(loc: ObservationLocation) => setDraft((d) => ({ ...d, location: loc }))}
               />
               <div className="mt-4">
-                <Field label="Words instead of a marker" htmlFor="loc-note" optional hint="e.g. 'outer edge, near armpit'">
+                <Field
+                  label="Location details"
+                  htmlFor="loc-note"
+                  optional
+                  hint="Add landmarks that may help you describe it later, such as “near the armpit” or “about 3 cm from the nipple.”"
+                >
                   <TextInput
                     id="loc-note"
                     value={draft.locationNote}
@@ -358,7 +364,7 @@ export function RecordPage() {
                   <dd>
                     {SIDE_OPTIONS.find((s) => s.id === draft.side)?.label ?? '—'}
                     {draft.location?.region
-                      ? ` · ${draft.location.region.replace(/-/g, ' ')}`
+                      ? ` · ${REGION_OPTIONS.find((region) => region.id === draft.location?.region)?.label ?? 'Approximate area'}`
                       : draft.locationNote
                         ? ` · ${draft.locationNote}`
                         : ''}

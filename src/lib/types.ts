@@ -19,6 +19,9 @@ export type BodyRegion =
   | 'lower-outer'
   | 'lower-inner'
   | 'central'
+  | 'nipple-areola'
+  | 'axilla'
+  | 'chest-wall'
   | 'other';
 
 /** Approximate marker attached to an observation (never an isolated record). */
@@ -210,12 +213,15 @@ export const SIDE_OPTIONS: Array<{ id: Side; label: string }> = [
 ];
 
 export const REGION_OPTIONS: Array<{ id: BodyRegion; label: string }> = [
-  { id: 'upper-outer', label: 'Upper outer (toward the armpit)' },
-  { id: 'upper-inner', label: 'Upper inner (toward the centre)' },
-  { id: 'lower-outer', label: 'Lower outer' },
-  { id: 'lower-inner', label: 'Lower inner' },
-  { id: 'central', label: 'Central (behind the nipple area)' },
-  { id: 'other', label: 'Other area' },
+  { id: 'upper-outer', label: 'Upper outer quadrant (toward the armpit)' },
+  { id: 'upper-inner', label: 'Upper inner quadrant (toward the breastbone)' },
+  { id: 'lower-outer', label: 'Lower outer quadrant' },
+  { id: 'lower-inner', label: 'Lower inner quadrant' },
+  { id: 'central', label: 'Central / retroareolar area' },
+  { id: 'nipple-areola', label: 'Nipple or areola' },
+  { id: 'axilla', label: 'Axilla (armpit) or axillary tail' },
+  { id: 'chest-wall', label: 'Chest wall or breastbone area' },
+  { id: 'other', label: 'Another nearby area' },
 ];
 
 export const SCREENING_TYPES = [

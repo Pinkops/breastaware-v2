@@ -713,16 +713,24 @@
 /* ---------- Body map ---------- */
 
 .bodymap {
-  border: 1px solid var(--line);
-  background: linear-gradient(180deg, #fbfaf7, #f3efe8);
-  border-radius: var(--radius);
-  padding: var(--sp-4);
+  border: 1px solid rgba(31, 111, 104, 0.18);
+  background:
+    radial-gradient(circle at 50% 16%, rgba(31, 111, 104, 0.09), transparent 34%),
+    linear-gradient(180deg, #fff 0%, #f7f4ee 100%);
+  border-radius: 22px;
+  padding: clamp(1rem, 3vw, 1.5rem);
+  box-shadow: 0 14px 40px rgba(22, 51, 60, 0.08);
 }
 .bodymap__canvas {
   position: relative;
-  max-width: 340px;
+  max-width: 380px;
   margin: 0 auto;
+  overflow: hidden;
   touch-action: manipulation;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(185, 172, 151, 0.48);
+  border-radius: 18px;
+  box-shadow: inset 0 1px 0 #fff, 0 8px 24px rgba(22, 51, 60, 0.07);
 }
 .bodymap__canvas svg { display: block; width: 100%; height: auto; cursor: crosshair; }
 .bodymap__canvas:focus-visible {
@@ -786,11 +794,20 @@
 
 .bodymap__tools {
   display: grid;
-  gap: var(--sp-4);
-  margin-top: var(--sp-4);
+  gap: var(--sp-5);
+  margin-top: var(--sp-5);
+  padding-top: var(--sp-5);
+  border-top: 1px solid var(--line);
 }
-@media (min-width: 640px) {
-  .bodymap__tools { grid-template-columns: 1fr 1fr; }
+.bodymap__regions {
+  display: grid;
+  gap: 6px;
+}
+@media (min-width: 560px) {
+  .bodymap__regions { grid-template-columns: 1fr 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bodymap__pulse { animation: none; }
 }
 
 /* ---------- Lists (questions, screening, vault) ---------- */

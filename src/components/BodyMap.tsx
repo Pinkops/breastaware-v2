@@ -14,24 +14,34 @@ import { IconInfo } from './icons';
  */
 
 const REGION_POS: Record<BodyRegion, { x: number; y: number }> = {
-  // Diagram faces the viewer: viewer-right = person's LEFT.
-  'upper-outer': { x: 66, y: 30 }, // person's outer = toward armpit
-  'upper-inner': { x: 38, y: 30 },
-  'lower-outer': { x: 66, y: 52 },
-  'lower-inner': { x: 38, y: 52 },
-  central: { x: 52, y: 41 },
-  other: { x: 52, y: 41 },
+  // Front-facing diagram: viewer-right is the person's left.
+  'upper-outer': { x: 76, y: 30 },
+  'upper-inner': { x: 59, y: 30 },
+  'lower-outer': { x: 76, y: 45 },
+  'lower-inner': { x: 59, y: 45 },
+  central: { x: 68, y: 37 },
+  'nipple-areola': { x: 68, y: 37 },
+  axilla: { x: 89, y: 25 },
+  'chest-wall': { x: 50, y: 37 },
+  other: { x: 68, y: 37 },
 };
 
-function regionForPosition(xPct: number, yPct: number): BodyRegion {
-  const personLeft = xPct > 50; // viewer-right side = person's left
-  const outer = personLeft ? xPct > 58 : xPct < 42;
-  const dx = Math.abs(xPct - 52);
-  const dy = yPct - 41;
-  if (dx < 7 && Math.abs(dy) < 8) return 'central';
-  if (dy < -4) return outer ? 'upper-outer' : 'upper-inner';
-  if (dy > 6) return outer ? 'lower-outer' : 'lower-inner';
-  return outer ? 'upper-outer' : 'lower-inner';
+/** Translate a tap into a documentation region; this is geometry, not clinical interpretation. */
+export function regionForPosition(xPct: number, yPct: number): BodyRegion {
+  const breastCenterX = xPct > 50 ? 68 : 32;
+  const dx = xPct - breastCenterX;
+  const dy = yPct - 37;
+  const distance = Math.hypot(dx, dy);
+
+  if (xPct >= 45 && xPct <= 55) return 'chest-wall';
+  if ((xPct < 16 || xPct > 84) && yPct >= 16 && yPct <= 42) return 'axilla';
+  if (distance <= 3.5) return 'nipple-areola';
+  if (distance <= 8) return 'central';
+
+  const outer = xPct > 50 ? dx > 0 : dx < 0;
+  const upper = dy < 0;
+  if (upper) return outer ? 'upper-outer' : 'upper-inner';
+  return outer ? 'lower-outer' : 'lower-inner';
 }
 
 function defaultPosFor(side: Side, region: BodyRegion | null): { x: number; y: number } {
@@ -82,7 +92,7 @@ export function BodyMap({
     const xPct = clamp(((e.clientX - rect.left) / rect.width) * 100, 4, 96);
     const yPct = clamp(((e.clientY - rect.top) / rect.height) * 100, 6, 92);
     const region = regionForPosition(xPct, yPct);
-    emit({ xPct: Math.round(xPct), yPct: Math.round(yPct), region, side: loc.side === 'unsure' ? inferSide(xPct) : loc.side });
+    emit({ xPct: Math.round(xPct), yPct: Math.round(yPct), region, side: inferSide(xPct) });
     setAnnounced(`Marker placed, ${REGION_OPTIONS.find((r) => r.id === region)?.label}`);
   };
 
@@ -139,60 +149,6 @@ export function BodyMap({
         <span>For personal documentation only. This map does not analyze, diagnose, or interpret findings.</span>
       </p>
 
-      {/* Non-visual / accessible alternative — always present, drives the same marker */}
-      <div className="bodymap__tools">
-        <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
-          <legend className="label">Side</legend>
-          <div className="choices choices--2">
-            {SIDE_OPTIONS.map((s) => (
-              <label className="choice" key={s.id} style={{ padding: '9px 12px', minHeight: 44 }}>
-                <input
-                  type="radio"
-                  name={`${idPrefix}-side`}
-                  value={s.id}
-                  checked={loc.side === s.id}
-                  disabled={readOnly}
-                  onChange={() => {
-                    const pos = defaultPosFor(s.id, loc.region);
-                    emit({ side: s.id, xPct: pos.x, yPct: pos.y, region: loc.region ?? (s.id === 'both' || s.id === 'unsure' ? null : 'upper-outer') });
-                    setAnnounced(`Side set to ${s.label}`);
-                  }}
-                />
-                <span className="choice__body">
-                  <span className="choice__label">{s.label}</span>
-                </span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
-
-        <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
-          <legend className="label">Approximate area</legend>
-          <p className="hint">Choose an area without using the diagram, or tap the diagram directly.</p>
-          <div style={{ display: 'grid', gap: 6 }}>
-            {REGION_OPTIONS.map((r) => (
-              <label className="choice" key={r.id} style={{ padding: '9px 12px', minHeight: 44 }}>
-                <input
-                  type="radio"
-                  name={`${idPrefix}-region`}
-                  value={r.id}
-                  checked={loc.region === r.id}
-                  disabled={readOnly}
-                  onChange={() => {
-                    const pos = defaultPosFor(loc.side, r.id);
-                    emit({ region: r.id, xPct: pos.x, yPct: pos.y });
-                    setAnnounced(`Area set to ${r.label}`);
-                  }}
-                />
-                <span className="choice__body">
-                  <span className="choice__label">{r.label}</span>
-                </span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
-      </div>
-
       {/* Graphical map (optional convenience) */}
       <div
         ref={canvasRef}
@@ -203,7 +159,7 @@ export function BodyMap({
         aria-label={
           readOnly
             ? 'Body map showing the recorded marker'
-            : 'Body map. Use pointer to tap a location, or arrow keys to move the marker. Region and side selectors above work without this diagram.'
+            : 'Front-view breast location map. Tap an approximate location or use arrow keys to move the marker. Side and anatomical area selectors below provide an equivalent alternative.'
         }
         aria-describedby={liveId}
         onKeyDown={onKeyDown}
@@ -233,17 +189,25 @@ export function BodyMap({
           {/* sternum */}
           <path d="M150 108 L150 232" stroke="#c9bda9" strokeWidth="1.5" strokeDasharray="4 6" fill="none" />
 
-          {/* breast regions — left (viewer right) */}
-          <g opacity="0.9">
-            <circle cx="204" cy="132" r="34" fill="rgba(255,255,255,0.45)" stroke="#b9ac97" strokeWidth="1.6" />
-            <circle cx="96" cy="132" r="34" fill="rgba(255,255,255,0.45)" stroke="#b9ac97" strokeWidth="1.6" />
-            {/* quadrant guides */}
-            <path d="M204 98 L204 166 M170 132 L238 132" stroke="#c4b7a2" strokeWidth="1" strokeDasharray="3 5" />
-            <path d="M96 98 L96 166 M62 132 L130 132" stroke="#c4b7a2" strokeWidth="1" strokeDasharray="3 5" />
-            {/* nipple markers */}
-            <circle cx="204" cy="132" r="4" fill="#b9a98f" />
-            <circle cx="96" cy="132" r="4" fill="#b9a98f" />
+          {/* Breast footprint and axillary tails. Boundaries are deliberately approximate. */}
+          <g opacity="0.96">
+            <path d="M225 108 C238 94 249 89 258 94 C247 105 239 116 235 128" fill="rgba(255,255,255,0.38)" stroke="#b9ac97" strokeWidth="1.5" />
+            <path d="M75 108 C62 94 51 89 42 94 C53 105 61 116 65 128" fill="rgba(255,255,255,0.38)" stroke="#b9ac97" strokeWidth="1.5" />
+            <circle cx="204" cy="132" r="40" fill="rgba(255,255,255,0.5)" stroke="#aa9c85" strokeWidth="1.8" />
+            <circle cx="96" cy="132" r="40" fill="rgba(255,255,255,0.5)" stroke="#aa9c85" strokeWidth="1.8" />
+            {/* Clinical quadrant guides */}
+            <path d="M204 92 L204 172 M164 132 L244 132" stroke="#b9ac97" strokeWidth="1" strokeDasharray="4 5" />
+            <path d="M96 92 L96 172 M56 132 L136 132" stroke="#b9ac97" strokeWidth="1" strokeDasharray="4 5" />
+            {/* Areola and nipple reference points */}
+            <circle cx="204" cy="132" r="8" fill="none" stroke="#b9a98f" strokeWidth="1.2" />
+            <circle cx="96" cy="132" r="8" fill="none" stroke="#b9a98f" strokeWidth="1.2" />
+            <circle cx="204" cy="132" r="2.8" fill="#a99375" />
+            <circle cx="96" cy="132" r="2.8" fill="#a99375" />
           </g>
+
+          <text x="150" y="190" textAnchor="middle" fontSize="10" fontWeight="650" letterSpacing="1.2" fill="#6d7e83" fontFamily="system-ui">
+            FRONT VIEW · APPROXIMATE MAP
+          </text>
 
           {/* side labels: diagram faces viewer → viewer-right is person's LEFT */}
           <text x="254" y="70" textAnchor="middle" fontSize="11" fontWeight="700" fill="#5c7078" fontFamily="system-ui">
@@ -271,6 +235,61 @@ export function BodyMap({
             </div>
           </div>
         )}
+      </div>
+
+
+      {/* Non-visual / accessible alternative — always present, drives the same marker */}
+      <div className="bodymap__tools">
+        <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
+          <legend className="label">Side</legend>
+          <div className="choices choices--2">
+            {SIDE_OPTIONS.map((s) => (
+              <label className="choice" key={s.id} style={{ padding: '9px 12px', minHeight: 44 }}>
+                <input
+                  type="radio"
+                  name={`${idPrefix}-side`}
+                  value={s.id}
+                  checked={loc.side === s.id}
+                  disabled={readOnly}
+                  onChange={() => {
+                    const pos = defaultPosFor(s.id, loc.region);
+                    emit({ side: s.id, xPct: pos.x, yPct: pos.y, region: loc.region ?? (s.id === 'both' || s.id === 'unsure' ? null : 'upper-outer') });
+                    setAnnounced(`Side set to ${s.label}`);
+                  }}
+                />
+                <span className="choice__body">
+                  <span className="choice__label">{s.label}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+
+        <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
+          <legend className="label">Anatomical area</legend>
+          <p className="hint">Choose the closest area. Quadrants are named from your perspective, not the viewer&rsquo;s.</p>
+          <div className="bodymap__regions">
+            {REGION_OPTIONS.map((r) => (
+              <label className="choice" key={r.id} style={{ padding: '9px 12px', minHeight: 44 }}>
+                <input
+                  type="radio"
+                  name={`${idPrefix}-region`}
+                  value={r.id}
+                  checked={loc.region === r.id}
+                  disabled={readOnly}
+                  onChange={() => {
+                    const pos = defaultPosFor(loc.side, r.id);
+                    emit({ region: r.id, xPct: pos.x, yPct: pos.y });
+                    setAnnounced(`Area set to ${r.label}`);
+                  }}
+                />
+                <span className="choice__body">
+                  <span className="choice__label">{r.label}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
       </div>
 
       <p className="bodymap__caption">
